@@ -20,6 +20,7 @@ namespace Gifter.Models
 
         [Required]
         public DateTime DateCreated { get; set; }
+        public List<Comment> Comments { get; set; }
 
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Gifter.Models;
 using Gifter.Utils;
+using Microsoft.Data.SqlClient;
 
 namespace Gifter.Repositories
 {
@@ -82,6 +83,63 @@ namespace Gifter.Repositories
                     reader.Close();
 
                     return userProfile;
+                }
+            }
+        }
+
+        public UserProfile GetUserIdWithComments(int userId)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                      SELECT      up.Id AS UserProfileId, up.Name AS UserName, up.Bio, up.Email, up.DateCreated AS UserProfileDateCreated,
+                                  up.ImageUrl AS UserProfileImageUrl,
+
+                                  c.Id AS CommentId, c.Message, c.UserProfileId AS CommentUserProfileId
+                           FROM UserProfile up
+                                LEFT JOIN Comment c on c.UserProfileId = up.id
+                           WHERE up.Id = @Id";
+
+                    DbUtils.AddParameter(cmd, "@Id", userId);
+
+                    var reader = cmd.ExecuteReader();
+
+                    UserProfile user = null;
+                    while (reader.Read())
+                    {
+                        if (user == null)
+                        {
+                            user = new UserProfile()
+                            {
+                                Id = userId,
+                                Name = DbUtils.GetString(reader, "UserName"),
+                                Email = DbUtils.GetString(reader, "Email"),
+                                DateCreated = DbUtils.GetDateTime(reader, "UserProfileDateCreated"),
+                                ImageUrl = DbUtils.GetString(reader, "UserProfileImageUrl"),
+
+                                Comments = new List<Comment>()
+                            };
+                        }
+
+                        if (DbUtils.IsNotDbNull(reader, "CommentId"))
+                        {
+                            user.Comments.Add(new Comment()
+                            {
+                                Id = DbUtils.GetInt(reader, "CommentId"),
+                                Message = DbUtils.GetString(reader, "Message"),
+                                UserProfileId = userId
+                            });
+
+                        }
+
+                    }
+
+                    reader.Close();
+
+                    return user;
                 }
             }
         }
