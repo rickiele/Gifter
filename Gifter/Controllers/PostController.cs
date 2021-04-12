@@ -28,18 +28,16 @@ namespace Gifter.Controllers
             return Ok(posts);
         }
 
-        [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        [HttpGet("GetPostIdWithComments/{id}")]
+        public IActionResult GetPostIdWithComments(int id)
         {
-            var post = _postRepository.GetById(id);
+            var post = _postRepository.GetPostIdWithComments(id);
             if (post == null)
             {
                 return NotFound();
             }
             return Ok(post);
         }
-
-
 
         
         [HttpPost]
