@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.Data.SqlClient;
+using System.Data.SqlClient;
 
 namespace Gifter.Utils
 {
@@ -122,6 +122,5 @@ namespace Gifter.Utils
                 cmd.Parameters.AddWithValue(name, value);
             }
         }
-
     }
 }
