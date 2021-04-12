@@ -22,6 +22,8 @@ namespace Gifter
         {
 
             services.AddTransient<IPostRepository, PostRepository>();
+            services.AddTransient<IUserProfileRepository, UserProfileRepository>();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
