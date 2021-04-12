@@ -84,10 +84,8 @@ namespace Gifter.Repositories
                     {
                         var postId = DbUtils.GetInt(reader, "PostId");
 
-                        //first time through the loop, the list is empty
                         var existingPost = posts.FirstOrDefault(p => p.Id == postId);
 
-                        //the first time through the loop, it is null bc the list was empty
                         if (existingPost == null)
                         {
                             existingPost = new Post()
@@ -106,7 +104,7 @@ namespace Gifter.Repositories
                                     DateCreated = DbUtils.GetDateTime(reader, "UserProfileDateCreated"),
                                     ImageUrl = DbUtils.GetString(reader, "UserProfileImageUrl"),
                                 },
-                                //every post starts with an empty comments list
+                                
                                 Comments = new List<Comment>()
                             };
 
@@ -161,6 +159,7 @@ namespace Gifter.Repositories
                             DateCreated = DbUtils.GetDateTime(reader, "DateCreated"),
                             ImageUrl = DbUtils.GetString(reader, "ImageUrl"),
                             UserProfileId = DbUtils.GetInt(reader, "UserProfileId"),
+
                             UserProfile = new UserProfile()
                             {
                                 Id = DbUtils.GetInt(reader, "UserProfileId"),
@@ -169,6 +168,58 @@ namespace Gifter.Repositories
                                 DateCreated = DbUtils.GetDateTime(reader, "UserProfileDateCreated"),
                                 ImageUrl = DbUtils.GetString(reader, "ImageUrl"),
                             },
+                        };
+                    }
+
+                    reader.Close();
+
+                    return post;
+                }
+            }
+        }
+
+        public Post GetPostIdWithComments(int postId)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                           SELECT p.Id AS PostId, p.Title, p.Caption, p.DateCreated AS PostDateCreated,
+                                  p.ImageUrl AS PostImageUrl, p.UserProfileId AS PostUserProfileId,
+                                  up.Name, up.Bio, up.Email, up.DateCreated AS UserProfileDateCreated,
+                                  up.ImageUrl AS UserProfileImageUrl,
+                                  c.Id AS CommentId, c.Message, c.UserProfileId AS CommentUserProfileId
+                           FROM Post p
+                                LEFT JOIN UserProfile up ON p.UserProfileId = up.id
+                                LEFT JOIN Comment c on c.PostId = p.id
+                           WHERE p.Id = @Id";
+
+                    DbUtils.AddParameter(cmd, "@Id", postId);
+
+                    var reader = cmd.ExecuteReader();
+
+                    Post post = null;
+                    while (reader.Read())
+                    {
+                        post = new Post()
+                        {
+                            Id = postId,
+                            Title = DbUtils.GetString(reader, "Title"),
+                            Caption = DbUtils.GetString(reader, "Caption"),
+                            DateCreated = DbUtils.GetDateTime(reader, "DateCreated"),
+                            ImageUrl = DbUtils.GetString(reader, "ImageUrl"),
+                            UserProfileId = DbUtils.GetInt(reader, "UserProfileId"),
+                            UserProfile = new UserProfile()
+                            {
+                                Id = DbUtils.GetInt(reader, "UserProfileId"),
+                                Name = DbUtils.GetString(reader, "UserName"),
+                                Email = DbUtils.GetString(reader, "Email"),
+                                DateCreated = DbUtils.GetDateTime(reader, "UserProfileDateCreated"),
+                                ImageUrl = DbUtils.GetString(reader, "ImageUrl"),
+                            },
+                            Comments = new List<Comment>()
                         };
                     }
 
