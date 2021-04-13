@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Gifter.Models;
 using Gifter.Utils;
+using Microsoft.Data.SqlClient;
 
 namespace Gifter.Repositories
 {
@@ -315,6 +316,9 @@ namespace Gifter.Repositories
             }
         }
 
+
+        // The Search() method builds a SQL query that uses the LIKE operator to find records matching the
+        // search criterion and uses the sortDesc parameter to determine the ORDER BY direction.
         public List<Post> Search(string criterion, bool sortDescending)
         {
             using (var conn = Connection)
@@ -372,5 +376,58 @@ namespace Gifter.Repositories
                 }
             }
         }
+
+        public List<Post> SearchforHottest(DateTime datetime)
+        {
+            using (var sqlConn = Connection)
+            {
+                sqlConn.Open();
+                using (var sqlCmd = sqlConn.CreateCommand())
+                {
+                    var sql =   @"
+                    SELECT      p.Id AS PostId, p.Title, p.Caption, p.DateCreated AS PostDateCreated, 
+                                p.ImageUrl AS PostImageUrl, p.UserProfileId,
+
+                                up.Name, up.Bio, up.Email, up.DateCreated AS UserDateCreated, 
+                                up.ImageUrl AS UserImageUrl
+
+                    FROM        Post p 
+               LEFT JOIN        UserProfile up ON p.UserProfileId = up.id
+
+                    WHERE       p.DateCreated >= @DateTime";
+
+                    sqlCmd.CommandText = sql;
+
+                    DbUtils.AddParameter(sqlCmd, "@DateTime", datetime);
+                    var reader = sqlCmd.ExecuteReader();
+
+                    var posts = new List<Post>();
+                    while (reader.Read())
+                    {
+                        posts.Add(new Post()
+                        {
+                            Id = DbUtils.GetInt(reader, "PostId"),
+                            Title = DbUtils.GetString(reader, "Title"),
+                            Caption = DbUtils.GetString(reader, "Caption"),
+                            DateCreated = DbUtils.GetDateTime(reader, "PostDateCreated"),
+                            ImageUrl = DbUtils.GetString(reader, "PostImageUrl"),
+                            UserProfileId = DbUtils.GetInt(reader, "UserProfileId"),
+                            UserProfile = new UserProfile()
+                            {
+                                Id = DbUtils.GetInt(reader, "UserProfileId"),
+                                Name = DbUtils.GetString(reader, "Name"),
+                                Email = DbUtils.GetString(reader, "Email"),
+                                DateCreated = DbUtils.GetDateTime(reader, "UserDateCreated"),
+                                ImageUrl = DbUtils.GetString(reader, "UserImageUrl"),
+                            },
+                        });
+                    }
+                    reader.Close();
+                    return posts;
+                }
+            }
+
+        }
+
     }
 }

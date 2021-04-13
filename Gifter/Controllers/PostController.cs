@@ -39,7 +39,6 @@ namespace Gifter.Controllers
             return Ok(post);
         }
 
-        
         [HttpPost]
         public IActionResult Post(Post post)
         {
@@ -66,10 +65,17 @@ namespace Gifter.Controllers
             return NoContent();
         }
 
-        [HttpGet("search")]
+        [HttpGet("Search")]
         public IActionResult Search(string q, bool sortDesc)
         {
             return Ok(_postRepository.Search(q, sortDesc));
         }
+
+        [HttpGet("Hottest")]
+        public IActionResult Search(DateTime dateTime)
+        {
+            return Ok(_postRepository.SearchforHottest(dateTime));
+        }
+
     }
 }
