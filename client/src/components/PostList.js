@@ -3,6 +3,7 @@
 import React, { useContext, useEffect } from "react";
 import { PostContext } from "../providers/PostProvider";
 import Post from "./Post";
+import PostForm from "./PostForm";
 
 const PostList = () => {
     const { posts, getAllPosts } = useContext(PostContext);
