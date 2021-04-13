@@ -36,6 +36,17 @@ namespace Gifter.Controllers
             return Ok(user);
         }
 
+        [HttpGet("GetUserIdWithPostsAndComments/{id}")]
+        public IActionResult GetUserIdWithPostsAndComments(int id)
+        {
+            var user = _userProfileRepo.GetUserWithPostsAndComments(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
+        }
+
         [HttpPost]
         public IActionResult UserProfile(UserProfile user)
         {

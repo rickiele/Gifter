@@ -11,5 +11,6 @@ namespace Gifter.Repositories
         UserProfile GetById(int id);
         void Update(UserProfile user);
         UserProfile GetUserIdWithComments(int userId);
+        UserProfileWithPostsNComments GetUserWithPostsAndComments(int userId);
     }
 }
